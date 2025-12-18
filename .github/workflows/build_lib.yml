@@ -15,26 +15,64 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup HarmonyOS NDK
+    - name: Setup HarmonyOS NDK (6.0.0.1 Newest)
       run: |
-        wget https://repo.huaweicloud.com/openharmony/os/4.0-Release/ohos-sdk-windows_linux-public.tar.gz
-        mkdir ohos-sdk
-        tar -xzf ohos-sdk-windows_linux-public.tar.gz -C ohos-sdk
-        cd ohos-sdk/linux
-        unzip -q native-linux-x64-*.zip
-        echo "OHOS_NDK_HOME=$(pwd)/native" >> $GITHUB_ENV
+        # 1. 下载 OpenHarmony 6.0.0.1-Release SDK (2025-Dec)
+        echo "Downloading SDK 6.0.0.1..."
+        # 使用最新的 12月版本
+        wget -q https://repo.huaweicloud.com/openharmony/os/6.0.0.1-Release/ohos-sdk-windows_linux-public.tar.gz
+        
+        # 2. 解压外层包
+        echo "Extracting SDK..."
+        mkdir temp_sdk
+        tar -xzf ohos-sdk-windows_linux-public.tar.gz -C temp_sdk
+        
+        # 3. 智能查找 native zip 包 (3.0G的大包结构可能复杂，用 find 最稳)
+        NATIVE_ZIP=$(find temp_sdk -name "native-linux-x64-*.zip" | head -n 1)
+        
+        if [ -z "$NATIVE_ZIP" ]; then
+          echo "Error: Could not find native-linux-x64-*.zip"
+          find temp_sdk -maxdepth 3
+          exit 1
+        fi
+        
+        echo "Found Native Zip: $NATIVE_ZIP"
+        
+        # 4. 解压 Native 包
+        mkdir -p ohos-sdk
+        unzip -q "$NATIVE_ZIP" -d ohos-sdk
+        
+        # 5. 设置环境变量
+        echo "OHOS_NDK_HOME=$(pwd)/ohos-sdk/native" >> $GITHUB_ENV
+
+    - name: Check Environment
+      run: |
+        echo "Checking CMake..."
+        if [ -d "$OHOS_NDK_HOME/build/cmake" ]; then
+          ls $OHOS_NDK_HOME/build/cmake
+        else
+          echo "Warning: CMake path might be different, trying auto-locate..."
+          find $OHOS_NDK_HOME -name "ohos.toolchain.cmake"
+        fi
 
     - name: Build C++ (.so)
       run: |
         mkdir build_cpp
         cd build_cpp
+        
+        # 自动定位 toolchain
+        TOOLCHAIN_FILE=$(find $OHOS_NDK_HOME -name "ohos.toolchain.cmake" | head -n 1)
+        echo "Using Toolchain: $TOOLCHAIN_FILE"
+        
         /usr/bin/cmake \
           -DOHOS_STL=c++_shared \
-          -DCMAKE_TOOLCHAIN_FILE=$OHOS_NDK_HOME/build/cmake/ohos.toolchain.cmake \
+          -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
           -DCMAKE_BUILD_TYPE=Release \
           -DOHOS_ARCH=arm64-v8a \
           ../entry/src/main/cpp
+        
         make
+        
         mkdir -p ../output/libs/arm64-v8a
         find . -name "libmylib.so" -exec cp {} ../output/libs/arm64-v8a/ \;
 
