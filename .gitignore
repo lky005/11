@@ -1,0 +1,27 @@
+#/node_modules
+#/oh_modules
+#/local.properties
+#/.idea
+#**/build
+#/.hvigor
+#.cxx
+#/.clangd
+#/.clang-format
+#/.clang-tidy
+#**/.test
+#/.appanalyzer
+# 编译产物和缓存
+build/
+.hvigor/
+oh_modules/
+.cxx/
+
+# 本地配置 (包含SDK路径，千万别传)
+local.properties
+sdk.dir
+
+# IDE 配置
+.idea/
+*.iml
+*.hprof
+.DS_Store
