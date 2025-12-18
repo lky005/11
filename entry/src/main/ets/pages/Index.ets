@@ -1,23 +1,22 @@
-import { hilog } from '@kit.PerformanceAnalysisKit';
-import testNapi from 'libentry.so';
-
-const DOMAIN = 0x0000;
-
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World';
+  @State message: string = '我的鸿蒙库测试'
 
   build() {
     Row() {
       Column() {
+        // 显示一行大字
         Text(this.message)
-          .fontSize($r('app.float.page_text_font_size'))
+          .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .onClick(() => {
-            this.message = 'Welcome';
-            hilog.info(DOMAIN, 'testTag', 'Test NAPI 2 + 3 = %{public}d', testNapi.add(2, 3));
-          })
+          .margin({ bottom: 20 })
+
+        // 显示提示信息
+        Text("如果你看到这个界面\n说明 App 没有闪退！")
+          .fontSize(18)
+          .textAlign(TextAlign.Center)
+          .fontColor(Color.Gray)
       }
       .width('100%')
     }

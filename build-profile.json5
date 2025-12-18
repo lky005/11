@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\lky.WIN-T26ATMKRE66\\.ohos\\config\\default_222_Uz97c-1KDNDyPD1s9yuyBh9hUVkky4WYJTjZBb7ZFC8=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B605F1CF6A62E1CE9A962D14B3D718E631F8589D1AC98F7D745E28193F35104173017C1E3A11C88",
+          "profile": "C:\\Users\\lky.WIN-T26ATMKRE66\\.ohos\\config\\default_222_Uz97c-1KDNDyPD1s9yuyBh9hUVkky4WYJTjZBb7ZFC8=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\lky.WIN-T26ATMKRE66\\.ohos\\config\\default_222_Uz97c-1KDNDyPD1s9yuyBh9hUVkky4WYJTjZBb7ZFC8=.p12",
+          "storePassword": "0000001B489A21DF4913113EACF7835DCDE74A89F5BB96B8C06919047FFDE2679B0583A06492B9B27BF211"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
