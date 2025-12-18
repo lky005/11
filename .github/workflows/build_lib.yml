@@ -15,15 +15,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup HarmonyOS NDK (Visual Mode)
+    - name: Setup HarmonyOS NDK (6.0.0.1 Newest)
       run: |
         echo "Downloading SDK 6.0.0.1 (3.0GB)..."
-        # 核心修改：去掉 -q，加上进度条参数，让你看得到速度
+        # 保持进度条显示
         wget --progress=bar:force:noscroll https://repo.huaweicloud.com/openharmony/os/6.0.0.1-Release/ohos-sdk-windows_linux-public.tar.gz
         
         echo "Extracting SDK..."
         mkdir temp_sdk
-        # 解压时也显示一点进度（不用 v 否则日志爆炸，保持简单）
         tar -xzf ohos-sdk-windows_linux-public.tar.gz -C temp_sdk
         
         NATIVE_ZIP=$(find temp_sdk -name "native-linux-x64-*.zip" | head -n 1)
@@ -41,6 +40,11 @@ jobs:
         
         echo "OHOS_NDK_HOME=$(pwd)/ohos-sdk/native" >> $GITHUB_ENV
 
+    - name: Check Environment
+      run: |
+        echo "Checking CMake Version..."
+        cmake --version
+
     - name: Build C++ (.so)
       run: |
         mkdir build_cpp
@@ -49,7 +53,8 @@ jobs:
         TOOLCHAIN_FILE=$(find $OHOS_NDK_HOME -name "ohos.toolchain.cmake" | head -n 1)
         echo "Using Toolchain: $TOOLCHAIN_FILE"
         
-        /usr/bin/cmake \
+        # --- 核心修复：去掉了 /usr/bin/ 前缀，直接用 cmake ---
+        cmake \
           -DOHOS_STL=c++_shared \
           -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
           -DCMAKE_BUILD_TYPE=Release \
