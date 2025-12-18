@@ -1,4 +1,4 @@
-﻿package com.example.mylib;
+package com.example.mylib;
 
 public class MyNativeLib {
     // 加载名为 "mylib" 的动态库
