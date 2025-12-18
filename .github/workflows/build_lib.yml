@@ -15,19 +15,17 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup HarmonyOS NDK (6.0.0.1 Newest)
+    - name: Setup HarmonyOS NDK (Visual Mode)
       run: |
-        # 1. 下载 OpenHarmony 6.0.0.1-Release SDK (2025-Dec)
-        echo "Downloading SDK 6.0.0.1..."
-        # 使用最新的 12月版本
-        wget -q https://repo.huaweicloud.com/openharmony/os/6.0.0.1-Release/ohos-sdk-windows_linux-public.tar.gz
+        echo "Downloading SDK 6.0.0.1 (3.0GB)..."
+        # 核心修改：去掉 -q，加上进度条参数，让你看得到速度
+        wget --progress=bar:force:noscroll https://repo.huaweicloud.com/openharmony/os/6.0.0.1-Release/ohos-sdk-windows_linux-public.tar.gz
         
-        # 2. 解压外层包
         echo "Extracting SDK..."
         mkdir temp_sdk
+        # 解压时也显示一点进度（不用 v 否则日志爆炸，保持简单）
         tar -xzf ohos-sdk-windows_linux-public.tar.gz -C temp_sdk
         
-        # 3. 智能查找 native zip 包 (3.0G的大包结构可能复杂，用 find 最稳)
         NATIVE_ZIP=$(find temp_sdk -name "native-linux-x64-*.zip" | head -n 1)
         
         if [ -z "$NATIVE_ZIP" ]; then
@@ -38,29 +36,16 @@ jobs:
         
         echo "Found Native Zip: $NATIVE_ZIP"
         
-        # 4. 解压 Native 包
         mkdir -p ohos-sdk
         unzip -q "$NATIVE_ZIP" -d ohos-sdk
         
-        # 5. 设置环境变量
         echo "OHOS_NDK_HOME=$(pwd)/ohos-sdk/native" >> $GITHUB_ENV
-
-    - name: Check Environment
-      run: |
-        echo "Checking CMake..."
-        if [ -d "$OHOS_NDK_HOME/build/cmake" ]; then
-          ls $OHOS_NDK_HOME/build/cmake
-        else
-          echo "Warning: CMake path might be different, trying auto-locate..."
-          find $OHOS_NDK_HOME -name "ohos.toolchain.cmake"
-        fi
 
     - name: Build C++ (.so)
       run: |
         mkdir build_cpp
         cd build_cpp
         
-        # 自动定位 toolchain
         TOOLCHAIN_FILE=$(find $OHOS_NDK_HOME -name "ohos.toolchain.cmake" | head -n 1)
         echo "Using Toolchain: $TOOLCHAIN_FILE"
         
