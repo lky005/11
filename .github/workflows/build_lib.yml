@@ -1,0 +1,52 @@
+﻿name: Compile HarmonyOS Lib
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup HarmonyOS NDK
+      run: |
+        wget https://repo.huaweicloud.com/openharmony/os/4.0-Release/ohos-sdk-windows_linux-public.tar.gz
+        mkdir ohos-sdk
+        tar -xzf ohos-sdk-windows_linux-public.tar.gz -C ohos-sdk
+        cd ohos-sdk/linux
+        unzip -q native-linux-x64-*.zip
+        echo "OHOS_NDK_HOME=$(pwd)/native" >> $GITHUB_ENV
+
+    - name: Build C++ (.so)
+      run: |
+        mkdir build_cpp
+        cd build_cpp
+        /usr/bin/cmake \
+          -DOHOS_STL=c++_shared \
+          -DCMAKE_TOOLCHAIN_FILE=$OHOS_NDK_HOME/build/cmake/ohos.toolchain.cmake \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DOHOS_ARCH=arm64-v8a \
+          ../entry/src/main/cpp
+        make
+        mkdir -p ../output/libs/arm64-v8a
+        find . -name "libmylib.so" -exec cp {} ../output/libs/arm64-v8a/ \;
+
+    - name: Build Java (.jar)
+      run: |
+        mkdir build_java
+        javac -d build_java entry/src/main/java/com/example/mylib/MyNativeLib.java
+        cd build_java
+        jar cvf ../output/mylib-java.jar .
+
+    - name: Upload Result
+      uses: actions/upload-artifact@v4
+      with:
+        name: Lib-Product
+        path: output/
