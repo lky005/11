@@ -1,0 +1,38 @@
+﻿name: Get JRE for OpenHarmony
+
+on: [push]
+
+jobs:
+  get_jre:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download BellSoft Liberica JDK 17 (Musl/Alpine version)
+      run: |
+        echo "正在下载最适配鸿蒙底层(Musl)的工业级 Java..."
+        # 这是一个针对 Musl Libc 优化的官方构建，非常适合 OpenHarmony
+        wget -q https://download.bell-sw.com/java/17.0.10+13/bellsoft-jdk17.0.10+13-linux-aarch64-musl.tar.gz
+        
+        echo "解压中..."
+        tar -xzf bellsoft-jdk17.0.10+13-linux-aarch64-musl.tar.gz
+        
+        mv jdk-17.0.10-musl ohos_jre
+        
+        # 瘦身：移除不必要文件，减小体积
+        echo "正在为移动端瘦身..."
+        rm -rf ohos_jre/lib/src.zip
+        rm -rf ohos_jre/demo
+        rm -rf ohos_jre/man
+        rm -rf ohos_jre/sample
+        # 移除头文件，运行时不需要
+        rm -rf ohos_jre/include
+        # 移除 jmods (我们只需要 jre 功能)
+        rm -rf ohos_jre/jmods
+        
+        echo "验证 libjvm.so 是否存在 (这是启动器的核心)..."
+        ls -lh ohos_jre/lib/server/libjvm.so
+
+    - name: Upload JRE
+      uses: actions/upload-artifact@v4
+      with:
+        name: OpenHarmony-JRE-17
+        path: ohos_jre/
